@@ -1,31 +1,35 @@
 import os
+import logging
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# --- Get token from environment (Render dashboard → Environment Variables) ---
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
 
-# --- /start command handler ---
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 Hey! I’m alive and running on Render 🚀")
+    await update.message.reply_text("Hello! I’m alive on Render 🚀")
 
-# --- message handler (for normal text messages) ---
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
-    await update.message.reply_text(f"You said: {user_text}")
 
-# --- main function ---
-async def main():
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(update.message.text)
 
-    # Add command + message handlers
+
+def main():
+    app = Application.builder().token(TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    print("✅ Bot started... Listening for messages.")
-    await app.run_polling()
+    # notice: no asyncio.run() here
+    app.run_polling()
 
-# --- entry point ---
+
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    print("✅ Bot started... Listening for messages.")
+    main()
+
